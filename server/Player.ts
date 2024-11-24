@@ -130,7 +130,7 @@ export class Player extends EventEmitter {
     let move = Move.UP // Default move
 
     if (this.#move === Move.NONE) {
-      this.sendError('ERROR_NO_MOVE')
+      this.sendError('ERROR_NO_MOVE_OF_'+this.#username)
 
       if (this.#lastMove !== Move.NONE) {
         move = this.#lastMove

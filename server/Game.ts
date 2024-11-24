@@ -20,6 +20,9 @@ export class Game extends EventEmitter {
   #players: Player[]
   #width: number
   #height: number
+  #limit_gab: number
+  #upper_limit = { x: 0, y: 0 }
+  #lower_limit = { x: 0, y: 0 }
   #fields: Array<Array<number>>
   #state: GameState
   #tickRate = baseTickrate
@@ -47,6 +50,12 @@ export class Game extends EventEmitter {
     this.#initializeState()
 
     setTimeout(() => this.#onTick(), 1000 / baseTickrate)
+  }
+
+  rawBroadcastToAlive(packet: string) {
+    for (const player of this.alivePlayers) {
+      player.rawSend(packet)
+    }
   }
 
   broadcastToAlive(type: string, ...args: any) {
@@ -81,6 +90,8 @@ export class Game extends EventEmitter {
       id: this.#id,
       width: this.#width,
       height: this.#height,
+      lower_limit: this.#lower_limit,
+      upper_limit: this.#upper_limit,
       players: this.#players.map(({ state }) => state),
     }
   }
@@ -89,6 +100,11 @@ export class Game extends EventEmitter {
     this.#width = this.#players.length * 2
     this.#height = this.#players.length * 2
     this.#fields = Array(this.#width).fill(null).map(() => Array(this.#height).fill(-1))
+    this.#lower_limit.x = 0
+    this.#lower_limit.y = 0
+    this.#upper_limit.x = this.#width - 1
+    this.#upper_limit.y = this.#height - 1
+    this.#limit_gab = 1
 
     for (let i = 0; i < this.#players.length; i++) {
       const x = i * 2
@@ -117,7 +133,7 @@ export class Game extends EventEmitter {
         player.off('chat', onChat)
       })
     }
-
+    this.#broadcastLimits()
     this.#broadcastPlayerPacket()
     this.#broadcastPos()
     this.broadcastToAlive('tick')
@@ -128,9 +144,7 @@ export class Game extends EventEmitter {
     for (const player of this.alivePlayers) {
       playerPacket += `player|${player.id}|${player.username}\n`
     }
-    for (const player of this.alivePlayers) {
-      player.rawSend(playerPacket)
-    }
+    this.rawBroadcastToAlive(playerPacket)
   }
 
   #broadcastPos() {
@@ -140,9 +154,54 @@ export class Game extends EventEmitter {
       updatePacket += `pos|${player.id}|${x}|${y}\n`
     }
 
+    this.rawBroadcastToAlive(updatePacket)
+  }
+
+  #broadcastLimits() {
+    const packet = `limit|${this.#lower_limit.x}|${this.#lower_limit.y}|${this.#upper_limit.x}|${this.#upper_limit.y}\n`
+    this.rawBroadcastToAlive(packet)
+  }
+
+  #updateMapSize() {
+    let areLimitsChanged = false
+    let max_x = 0
+    let max_y = 0
+    let min_x = this.#width
+    let min_y = this.#height
     for (const player of this.alivePlayers) {
-      player.rawSend(updatePacket)
+      let { x, y } = player.pos
+      if (y < min_y) min_y = y
+      if (x < min_x) min_x = x
+      if (x > max_x) max_x = x
+      if (y > max_y) max_y = y
     }
+    
+    const findNewLowerLimit = (old_limit: number, min: number) => {
+      if(min - this.#limit_gab > old_limit) {
+        areLimitsChanged = true
+        return min - this.#limit_gab
+      }
+      else
+        return old_limit
+    }
+
+    const findNewUpperLimit = (old_limit: number, max: number) => {
+      if(max + this.#limit_gab < old_limit) {
+        areLimitsChanged = true
+        return max + this.#limit_gab
+      }
+      else
+        return old_limit
+    }
+
+    this.#lower_limit.x = findNewLowerLimit(this.#lower_limit.x, min_x)
+    this.#lower_limit.y = findNewLowerLimit(this.#lower_limit.y, min_y)
+    this.#upper_limit.x = findNewUpperLimit(this.#upper_limit.x, max_x)
+    this.#upper_limit.y = findNewUpperLimit(this.#upper_limit.y, max_y)
+    if(areLimitsChanged){
+      this.#broadcastLimits()
+    }
+    console.log('new limits: ', this.#upper_limit, this.#lower_limit)
   }
 
   #onTick() {
@@ -161,26 +220,26 @@ export class Game extends EventEmitter {
       let { x, y } = player.pos
 
       if (move === Move.UP) {
-        if (y === 0) y = this.#height - 1
+        if (y === this.#lower_limit.y) y = this.#upper_limit.y
         else y--
       }
       else if (move === Move.RIGHT) {
-        if (x === this.#width - 1) x = 0
+        if (x === this.#upper_limit.x) x = this.#lower_limit.x
         else x++
       }
       else if (move === Move.DOWN) {
-        if (y === this.#height - 1) y = 0
+        if (y === this.#upper_limit.y) y = this.#lower_limit.y
         else y++
       }
       else if (move === Move.LEFT) {
-        if (x === 0) x = this.#width - 1
+        if (x === this.#lower_limit.x) x = this.#upper_limit.x
         else x--
       }
 
       player.setPos(x, y)
     }
-
-    // Apply move to fields
+      
+      // Apply move to fields
     for (const player of this.alivePlayers) {
       const { x, y } = player.pos
       const fieldPlayerIndex = this.#fields[x][y]
@@ -218,9 +277,7 @@ export class Game extends EventEmitter {
       updatePacket += `pos|${player.id}|${x}|${y}\n`
     }
 
-    for (const player of this.alivePlayers) {
-      player.rawSend(updatePacket)
-    }
+    this.rawBroadcastToAlive(updatePacket)
 
     // Check for game end
     let shouldEnd = false
@@ -242,10 +299,11 @@ export class Game extends EventEmitter {
           playersInOrder[i].eloScore = newEloScores[i];
         }
       }
-
+      console.log('game end')
       this.emit('end', winners)
     } else {
       this.broadcastToAlive('tick')
+      if(newDeadPlayers.length > 0) this.#updateMapSize()
 
       // Dynamically define tickrate
       const timeDiff = Date.now() - this.#startTime
