@@ -16,5 +16,7 @@ interface GameState {
   id: string
   width: number
   height: number
+  upper_limit: Vec2
+  lower_limit: Vec2
   players: PlayerState[]
 }

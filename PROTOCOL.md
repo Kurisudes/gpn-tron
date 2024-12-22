@@ -59,7 +59,7 @@ The error packet is sent by the server if something went wrong.
 ### game
 
 The game packet is sent by the server to inform the client about the new game round.  
-It contains information about the map size and the current player id.
+It contains information about the map size, the current player id and the type of the game.
 
 **Name:** game  
 **Sender:** Server  
@@ -69,6 +69,24 @@ It contains information about the map size and the current player id.
 | 1 | Number | The width of the current map |
 | 2 | Number | The height of the current map |
 | 3 | Number | The current player id |
+| 4 | String | Game type: limit or normal |
+
+**Example:** `game|100|100|5`
+
+### Limit
+
+The game packet is sent by the server to inform the client about the new map limits.  
+It contains the minimum and maximum limits of the map.
+
+**Name:** limit  
+**Sender:** Server  
+**Arguments:**  
+| # | Type | Description |
+|---|--------|-------------------------------|
+| 1 | Number | The minimum limit in x direction |
+| 2 | Number | The minimum limit in y direction |
+| 3 | Number | The maximum limit in x direction |
+| 4 | Number | The maximum limit in y direction |
 
 **Example:** `game|100|100|5`
 

@@ -79,7 +79,7 @@ export default function Home() {
           width: 'calc(100%/4)', height: 'calc(100%/4)',
           overflow: 'hidden'
         }}>
-          <h1>GPN Tron</h1>
+          <h1>38c3 Tron</h1>
           Connect via TCP and join the fun :)
           <br />
           You can also watch the current game via the viewer port.
