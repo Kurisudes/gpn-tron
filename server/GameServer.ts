@@ -15,7 +15,7 @@ const HOSTNAMES = Object.values(networkInterfaces())
   .flat()
   .filter(e => !e.internal)
   .map(({ address }) => address)
-HOSTNAMES.unshift('gpn-tron.duckdns.org')
+HOSTNAMES.unshift('tron.thekurisu.org (NOT WORKING YET)')
 
 export class GameServer {
   #port: number // Port number of the game tcp server

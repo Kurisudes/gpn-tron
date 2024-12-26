@@ -86,6 +86,11 @@ export default function Home() {
           <br />
           <br />
           <b>Wanna share your bot code? Upload to Github with #gpn-tron</b>
+          <br />
+          <b style={{ color: 'red' }}>
+          Attention: </b> 
+          This game is with new Limit Feature to reduce the length of games at the end. #limited-tron
+
         </div>
         {/* ConnectionInfo */}
         <div style={{
