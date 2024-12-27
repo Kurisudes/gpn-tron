@@ -16,6 +16,8 @@ const HOSTNAMES = Object.values(networkInterfaces())
   .filter(e => !e.internal)
   .map(({ address }) => address)
 HOSTNAMES.unshift('tron.thekurisu.org (NOT WORKING YET)')
+HOSTNAMES.unshift('51.12.57.196')
+HOSTNAMES.unshift('tron.swedencentral.cloudapp.azure.com')
 
 export class GameServer {
   #port: number // Port number of the game tcp server
