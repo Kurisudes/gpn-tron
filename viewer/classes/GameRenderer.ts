@@ -149,14 +149,13 @@ export class GameRenderer {
     const upper_left  = {x: game.lower_limit.x - 1, y: game.upper_limit.y + 1}
     const lower_left  = {x: game.lower_limit.x - 1, y: game.lower_limit.y - 1}
 
-    this.#drawPlayerLine(frameColor, upper_right, upper_left)
-    this.#drawPlayerLine(frameColor, upper_left,  lower_left)
-    this.#drawPlayerLine(frameColor, lower_left,  lower_right)
-    this.#drawPlayerLine(frameColor, lower_right, upper_right)
+    // this.#drawPlayerLine(frameColor, upper_right, upper_left)
+    // this.#drawPlayerLine(frameColor, upper_left,  lower_left)
+    // this.#drawPlayerLine(frameColor, lower_left,  lower_right)
+    // this.#drawPlayerLine(frameColor, lower_right, upper_right)
   }
 
   #renderPlayers() {
-    console.log("render Players")
     const { game } = gameService
     if (!game) return
     const space_to_wall = 0.5
@@ -203,8 +202,8 @@ export class GameRenderer {
           break;
 
         case "left":
-          ctx.lineTo(x + size / 2, y - size / 2);
           ctx.moveTo(x - size, y);
+          ctx.lineTo(x + size / 2, y - size / 2);
           ctx.lineTo(x + size / 2, y + size / 2);
           break;
       }
@@ -219,6 +218,7 @@ export class GameRenderer {
 
     for (const player of game.players) {
       let { alive, name, pos, moves } = player
+      let ArrowDirection: "right" | "up" | "down" | "left" | "none" = "none"
       if (!alive) continue
 
       const playerColor = getColorByString(name)
@@ -228,57 +228,69 @@ export class GameRenderer {
       // Render paths
       for (let moveIndex = 0; moveIndex < moves.length; moveIndex++) {
         const pos = moves[moveIndex]
-        let moveColor = ""
+        let color = playerColor
         if(pos.x >= lowerX && pos.y >= lowerY && pos.x <= upperX && pos.y <= upperY) {
-          moveColor = playerColor
+          color = playerColor
         }
         else {
-          moveColor =  greyishPlayerColor
+          color =  greyishPlayerColor
         }
         
         
         if (moveIndex === 0) {
           // Draw start head of this move
-          this.#drawPlayersDot(moveColor, pos)
+          this.#drawPlayersDot(color, pos)
           continue
         } 
         const prevPos = moves[moveIndex - 1]
 
-        // Todo: optimize Arrows - Idea: first draw all lines then draw all arrows 
-        const drawMove = (color) => {
-          if (prevPos.y === pos.y) {
-            if(prevPos.x - pos.x === 1 || prevPos.x - pos.x === -1) {
-              this.#drawPlayerLine(color, prevPos, pos)
-            } else if (prevPos.x < pos.x) {
-              this.#drawPlayerLine(color, {x: pos.x +space_to_wall, y: pos.y}, pos)
-              this.#drawPlayerLine(color, {x: prevPos.x -space_to_wall, y: prevPos.y}, prevPos)
-              drawArrow("left", prevPos, pos)
+        const drawArrowNextIndex = (direction: "up" | "down" | "left" | "right" | "none"): void => { 
+          if(moveIndex !== 1){
+            if(ArrowDirection !== "none") {
+              drawArrow(ArrowDirection, moves[moveIndex - 2], prevPos)
             }
-            else if (prevPos.x > pos.x) {
-              this.#drawPlayerLine(color, {x: pos.x -space_to_wall, y: pos.y}, pos)
-              this.#drawPlayerLine(color, {x: prevPos.x +space_to_wall, y: prevPos.y}, prevPos)
-              drawArrow("right", prevPos, pos)
-            } else this.#showMessage('error1: '+ prevPos.y + " " + pos.y, pos)
+          }
+          if(moveIndex === moves.length - 1){
+            if(direction !== "none"){
+              drawArrow(direction, prevPos, pos)
+            }
           }
           else {
-            if(prevPos.y - pos.y === 1 || prevPos.y - pos.y === -1) {
-              this.#drawPlayerLine(color, prevPos, pos)
-            } else if (prevPos.y < pos.y) {
-              this.#drawPlayerLine(color, {x: pos.x, y: pos.y +space_to_wall}, pos)
-              this.#drawPlayerLine(color, {x: prevPos.x, y: prevPos.y -space_to_wall}, prevPos)
-              drawArrow("down", prevPos, pos)
-            }
-            else if (prevPos.y > pos.y) {
-              this.#drawPlayerLine(color, {x: pos.x, y: pos.y -space_to_wall}, pos)
-              this.#drawPlayerLine(color, {x: prevPos.x, y: prevPos.y +space_to_wall}, prevPos)
-              drawArrow("up", prevPos, pos)
-            } else this.#showMessage('error2: '+ prevPos.y + " " + pos.y, pos)
+            ArrowDirection = direction
           }
         }
-        drawMove(moveColor)  
-      }
-      // Draw head
 
+        if (prevPos.y === pos.y) {
+          if(prevPos.x - pos.x === 1 || prevPos.x - pos.x === -1) {
+            this.#drawPlayerLine(color, prevPos, pos)
+            drawArrowNextIndex("none")
+          } else if (prevPos.x < pos.x) {
+            this.#drawPlayerLine(color, {x: pos.x +space_to_wall, y: pos.y}, pos)
+            this.#drawPlayerLine(color, {x: prevPos.x -space_to_wall, y: prevPos.y}, prevPos)
+            drawArrowNextIndex("left")
+          }
+          else if (prevPos.x > pos.x) {
+            this.#drawPlayerLine(color, {x: pos.x -space_to_wall, y: pos.y}, pos)
+            this.#drawPlayerLine(color, {x: prevPos.x +space_to_wall, y: prevPos.y}, prevPos)
+            drawArrowNextIndex("right")
+          } else this.#showMessage('error1: '+ prevPos.y + " " + pos.y, pos)
+        }
+        else {
+          if(prevPos.y - pos.y === 1 || prevPos.y - pos.y === -1) {
+            this.#drawPlayerLine(color, prevPos, pos)
+            drawArrowNextIndex("none")
+          } else if (prevPos.y < pos.y) {
+            this.#drawPlayerLine(color, {x: pos.x, y: pos.y +space_to_wall}, pos)
+            this.#drawPlayerLine(color, {x: prevPos.x, y: prevPos.y -space_to_wall}, prevPos)
+            drawArrowNextIndex("down")
+          }
+          else if (prevPos.y > pos.y) {
+            this.#drawPlayerLine(color, {x: pos.x, y: pos.y -space_to_wall}, pos)
+            this.#drawPlayerLine(color, {x: prevPos.x, y: prevPos.y +space_to_wall}, prevPos)
+            drawArrowNextIndex("up")
+          } else this.#showMessage('error2: '+ prevPos.y + " " + pos.y, pos)
+        }
+      }
     }
   }
 

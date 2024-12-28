@@ -54,7 +54,7 @@ export function Schedule() {
   }, [talks])
 
   return <div>
-    <h2>Current talks</h2>
+    <h2>Current talks (Not yet working)</h2>
     <br />
     {currentTalks.map(({ id, title, room, start, end }) => (
       <div key={id}>
@@ -64,7 +64,7 @@ export function Schedule() {
         <hr />
       </div>))}
       <br />
-      <h2>Next talks</h2>
+      <h2>Next talks (Not yet working)</h2>
     {nextTalks.map(({ id, title, room, start, end }) => (
       <div key={id}>
         <b>{title}</b>

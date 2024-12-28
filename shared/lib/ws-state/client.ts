@@ -9,7 +9,7 @@ export class WsStateClient<WsStateType> extends EventEmitter {
   constructor(port: number, protocol = 'ws') {
     super()
 
-    this.#socket = io(`${protocol}://${typeof location !== 'undefined' ? location.hostname : '127.0.0.1'}:${port}`)
+    this.#socket = io(`${protocol}://${typeof location !== 'undefined' ? location.hostname : 'wstron.thekuriso.org'}:${port}`)
 
     this.#socket.on('init', state => {
       this.#state = state
