@@ -139,3 +139,6 @@ dist
 
 # Mac files
 .DS_Store
+
+# Configuration file for deployment
+deploy.config

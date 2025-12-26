@@ -97,8 +97,8 @@ export class Game extends EventEmitter {
   }
 
   #initializeFields() {
-    this.#width = this.#players.length * 2
-    this.#height = this.#players.length * 2
+    this.#width = this.#players.length * 2 + 2
+    this.#height = this.#players.length * 2 + 2
     this.#fields = Array(this.#width).fill(null).map(() => Array(this.#height).fill(-1))
     this.#lower_limit.x = 0
     this.#lower_limit.y = 0
@@ -201,7 +201,6 @@ export class Game extends EventEmitter {
     if(areLimitsChanged){
       this.#broadcastLimits()
     }
-    console.log('new limits: ', this.#upper_limit, this.#lower_limit)
   }
 
   #onTick() {

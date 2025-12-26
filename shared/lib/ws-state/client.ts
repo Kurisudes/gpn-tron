@@ -6,10 +6,23 @@ export class WsStateClient<WsStateType> extends EventEmitter {
   #socket: Socket
   #state: WsStateType = {} as WsStateType
 
-  constructor(port: number, protocol = 'ws') {
+  constructor(port: number, protocol?: string) {
     super()
 
-    this.#socket = io(`${protocol}://${typeof location !== 'undefined' ? location.hostname : 'wstron.thekuriso.org'}:${port}`)
+    // Automatisch das richtige Protokoll basierend auf der aktuellen Seite verwenden
+    if (!protocol && typeof location !== 'undefined') {
+      protocol = location.protocol === 'https:' ? 'wss' : 'ws'
+    } else if (!protocol) {
+      protocol = 'ws'
+    }
+
+    // Wenn wir über HTTPS kommen (Cloudflare), verwende die aktuelle Domain ohne Port
+    // Andernfalls nutze hostname:port für lokale Entwicklung
+    const url = typeof location !== 'undefined' && location.protocol === 'https:' 
+      ? `${protocol}://${location.hostname}`
+      : `${protocol}://${typeof location !== 'undefined' ? location.hostname : 'wstron.thekuriso.org'}:${port}`
+
+    this.#socket = io(url)
 
     this.#socket.on('init', state => {
       this.#state = state

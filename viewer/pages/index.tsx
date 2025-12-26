@@ -79,7 +79,7 @@ export default function Home() {
           width: 'calc(100%/4)', height: 'calc(100%/4)',
           overflow: 'hidden'
         }}>
-          <h1>38c3 Tron</h1>
+          <h1>39c3 Tron</h1>
           Connect via TCP and join the fun :)
           <br />
           You can also watch the current game via the viewer port.
@@ -99,16 +99,11 @@ export default function Home() {
           width: 'calc(100%/4)', height: 'calc(100%/4)',
           overflow: 'hidden'
         }}>
-          <h3>Ports:</h3>
+          <h3>Pages:</h3>
           <ul>
-            <li>- 3000 [HTTP] (View server)</li>
-            <li>- {serverInfoList[0]?.port || 4000} [TCP] (Game server)</li>
-          </ul>
-          <h3>Hostnames:</h3>
-          <ul>
-            {serverInfoList.map(({ host, port }) => (
-              <li key={host}>- {host}</li>
-            ))}
+            <li>- GitHub: https://github.com/Kurisudes/gpn-tron</li>
+            <li>- View server (This page): https://tron.thekurisu.org/</li>
+            <li>- Game server: tcp://7.tcp.eu.ngrok.io:12898 </li>
           </ul>
         </div>
         {/* Scoreboard */}

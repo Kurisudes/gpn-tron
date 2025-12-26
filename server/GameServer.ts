@@ -37,7 +37,7 @@ export class GameServer {
     this.#updateScoreboard()
 
     setTimeout(() => {
-      this.#tcpServer.listen(this.#port)
+      this.#tcpServer.listen(this.#port, '0.0.0.0')
       console.log('Game server started on port:', this.#port)
     }, 1)
 
